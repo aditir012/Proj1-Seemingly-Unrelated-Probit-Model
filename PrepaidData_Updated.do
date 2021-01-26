@@ -1,10 +1,9 @@
 //FDIC Survey on unbanked and underbanked//
-//Incorporating Weights//
 clear all
 use "/Users/aditirouth/Downloads/prepaidmultiyearcoded.dta"
 
+//Incorporating Weights//
 use "/Users/aditirouth/Downloads/weights.dta"
-
 *merge single year replicate weights for each year of data in multiyear file
 use "/Users/aditirouth/Downloads/prepaidmultiyearcoded.dta"
 merge 1:1 hryear4 qstnum  using weights
@@ -157,32 +156,8 @@ tab prepaid
 ------------+-----------------------------------
       Total |      6,178      100.00
 
-
-Prior banking experience
-
-hbnkprevv2	Previously banked	Excludes households with missing information on previous banking status.
-hbnkprevv2	Previously banked	Unbanked households
-hbnkprevlyv2	Previously banked (within last year)	Excludes households with missing information on previous banking status.
-hbnkprevlyv2	Previously banked (within last year)	Unbanked households
-
--1	NIU
-1	Had bank account within last year
-2	Had bank account more than 1 year ago
-3	Never had bank account
-
 */
 
-tab hbnkprevv2
-drop if hbnkprevv2==-1
-
-gen prevbankyr=0
-replace prevbankyr=1 if hbnkprevv2==1
-
-gen prevbankyrs=0
-replace prevbankyrs=1 if hbnkprevv2==2
-
-tab prevbankyr
-tab prevbankyrs
 *************************************************************
 ///attitudes about banking and other financial services
 
@@ -289,118 +264,6 @@ tab allAFS
 
 
 //Controls
-/*source of prepaid card...only 2013 2015
-hppwhere1	Prepaid card, where from: Bank location or bank website 2%
-hppwhere2	Prepaid card, where from: Store or website that is not a bank 13%
-hppwhere3	Prepaid card, where from: Government agency 8%
-hppwhere4	Prepaid card, where from: Employer payroll card 4%
-hppwhere5	Prepaid card, where from: Family or friends 1%
-hppwhere6	Prepaid card, where from: Other 1%
-hppwhere99	Prepaid card, where from: Unknown 0.14%
-
-tab hppwhere1
-tab hppwhere2
-tab hppwhere3
-tab hppwhere4
-tab hppwhere5
-tab hppwhere6
-tab hppwhere99
-*/
-drop ppstoreweb ppgovt ppbankother
-
-gen ppstoreweb=0 if hryear4!=2017 //store or non-bank website//
-replace ppstoreweb=1 if hppwhere2==1
-tab ppstoreweb
-
-gen ppgovt=0 if hryear4!=2017
-replace ppgovt=1 if hppwhere3==1
-tab ppgovt
-
-gen ppbankother=0 if hryear4!=2017 //bank other=job family other unknown//
-replace ppbankother=1 if hppwhere1==1 | hppwhere4==1 | hppwhere5==1 | hppwhere6==1 | hppwhere99==1
-tab ppbankother
-
-/*hrloadpp	Prepaid card, reloaded in past 12 months	1	Card was reloaded
-hrloadpp	Prepaid card, reloaded in past 12 months	2	Card was not reloaded
-hrloadpp	Prepaid card, reloaded in past 12 months	-1	NIU
-hrloadpp	Prepaid card, reloaded in past 12 months	99	Unknown
-*/
-tab hrloadpp hryear4
-gen ppreload=0 if hryear4==2013
-replace ppreload=1 if hrloadpp==1
-tab ppreload
-
-//typical income payment
-tab htypincchkmo hryear4  //paper check money order
-tab htypincddbnk //direct deposit or etf into bank
-tab htypincddpp hryear4 //direct deposit to prepaid card
-tab htypinccash hryear4 //in cash
-tab htypincoth //other method
-tab htypinccc  //non-bank check casher
-tab htypincnone //none selected
-tab htypincbnka //any bank method
-tab htypincbnko //only bank methods
-
-/*htypincddpp |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         -1 |        117        3.14        3.14r
-          1 |        363        9.74       12.88
-          2 |      2,732       73.28       86.16
-         98 |        516       13.84      100.00
-------------+-----------------------------------
-      Total |      3,728      100.00
-
-. tab htypinccash
-
-htypinccash |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         -1 |        132        3.54        3.54
-          1 |        705       18.91       22.45
-          2 |      2,891       77.55      100.00
-------------+-----------------------------------
-      Total |      3,728      100.00
-	  
-*/
-gen incprepaid=0 if hryear4!=2013
-replace incprepaid=1 if htypincddpp==1
-tab incprepaid
-
-gen inccash=0 if hryear4!=2013
-replace inccash=1 if htypinccash==1
-tab inccash
-
-gen checkmopay=0 if hryear4!=2013
-replace checkmopay=1 if htypincchkmo==1
-tab checkmopay
-
-/*typical bill pyament//
-htyppaym	1	Cash
-htyppaym	2	Personal check
-htyppaym	3	Debit card
-htyppaym	4	Credit card
-htyppaym	5	Prepaid card
-htyppaym	6	Electronic payment from bank account
-htyppaym	7	Nonbank money order
-htyppaym	8	Bank money order or cashiers check
-htyppaym	9	Other
-htyppaym	99	Unknown
-htyppaym	-1	NIU
-*/
-
-gen cashbill=0 if hryear4==2015
-replace cashbill=1 if htyppaym==1
-tab cashbill
-
-gen ppbill=0 if hryear4==2015
-replace ppbill=1 if htyppaym==5
-tab ppbill
-
-gen nbmobill=0 if hryear4==2015
-replace nbmobill=1 if htyppaym==7
-tab nbmobill
-
-
-
 ///LIFESTYLE AND CULTURE VARIABLES//
 //have mobile phone
 tab hmphone
@@ -739,51 +602,8 @@ metro northeast midwest south west [iweight= hsupwgtk] if y2015==1 | y2017==1
 
 
 
-
 //comparison chisq2 & ttests//
-/*ttest openacct, by(prepaid)
-ttest prevbankyrs, by(prepaid)
-ttest transAFS, by(prepaid)
-ttest allAFS, by(prepaid)
-ttest noAFS, by(prepaid)
-ttest AFStransact, by(prepaid)
-ttest notrust , by(prepaid)
-ttest lomoney, by(prepaid)
-tab homeowner prepaid, column chi2 nofreq
-tab mobile prepaid, column chi2 nofreq
-tab smtphone prepaid, column chi2 nofreq
-tab nomphone prepaid, column chi2 nofreq
-tab hryear4 prepaid, column chi2 nofreq
-tab pagegrp prepaid, column chi2 nofreq
-tab hhtype prepaid, column chi2 nofreq
-tab singlemother prepaid, column chi2 nofreq 
-tab singlefather  prepaid, column chi2 nofreq 
-tab singlewm prepaid, column chi2 nofreq 
-tab singlem  prepaid, column chi2 nofreq 
-tab fatherother  prepaid, column chi2 nofreq 
-tab white prepaid, column chi2 nofreq
-tab black prepaid, column chi2 nofreq
-tab hispanic prepaid, column chi2 nofreq
-tab asianother prepaid, column chi2 nofreq
-tab nohighsch prepaid, column chi2 nofreq
-tab highsch prepaid, column chi2 nofreq
-tab somecoll prepaid, column chi2 nofreq
-tab colldeg prepaid, column chi2 nofreq
-tab inc1 prepaid, column chi2 nofreq
-tab inc2 prepaid, column chi2 nofreq
-tab inc3 prepaid, column chi2 nofreq
-tab inc4 prepaid, column chi2 nofreq
-tab inc5 prepaid, column chi2 nofreq
-tab employed prepaid, column chi2 nofreq
-tab notlabor prepaid, column chi2 nofreq
-tab unemplyd prepaid, column chi2 nofreq
-ttest pnum, by(prepaid)
-tab metro prepaid, column chi2 nofreq
-tab northeast prepaid, column chi2 nofreq
-tab midwest prepaid, column chi2 nofreq
-tab south prepaid, column chi2 nofreq
-tab west prepaid, column chi2 nofreq
-*/
+
 //comparison chisq2 & ttests...6178//
 tab prepaid openacct, column chi2 nofreq
 tab prevbankyrs openacct, column chi2 nofreq
@@ -893,23 +713,33 @@ tab age55 openacct, column chi2 nofreq
 tab age65 openacct, column chi2 nofreq
 
 
-*///seemingly unrelated no bootstrap JULY 2020///
-//no attitudes all years//
+///seemingly unrelated bivariate probit model no bootstrap JULY 2020///
+
+//not including banking attitudes and including all years//
+
 biprobit (openacct = prepaid prevbankyrs transAFS allAFS noAFS smtphone ftmphone nomphone y2013 y2015 y2017 age* married singlemother singlefather singlewm singlem black hispanic asianother white native nohighsch highsch somecoll colldeg hhincome employed notlabor unemplyd pnum metro northeast midwest west south) ///
 (prepaid = prevbankyrs homeowner smtphone ftmphone nomphone y2013 y2015 y2017 age* married singlemother singlefather singlewm singlem black hispanic asianother white native nohighsch highsch somecoll colldeg hhincome employed notlabor unemplyd pnum metro northeast midwest west south), vce(robust)
+
+//output in excel sheet
 outreg2 using prepaidoutputJEPFINAL.txt, excel label (insert) dec(3)
+
+//marginal effects
 margins, dydx(*) post
+
+//output in excel sheet
 outreg2 using prepaidoutputJEPFINAL.txt, excel cti(dydx) dec(3)
 
 probit openacct prevbankyrs transAFS  allAFS noAFS smtphone ftmphone nomphone y2013 y2015 y2017 age* married singlemother singlefather singlewm singlem black hispanic asianother white native nohighsch highsch somecoll colldeg hhincome employed notlabor unemplyd pnum metro northeast midwest west south, vce(robust)
 outreg2 using prepaidoutputJEPFINAL.txt, excel label (insert) dec(3)
 margins, dydx(*) post
 outreg2 using prepaidoutputJEPFINAL.txt, excel cti(dydx) dec(3)
+
 probit prepaid prevbankyrs homeowner smtphone ftmphone nomphone y2013 y2015 y2017 age* married singlemother singlefather singlewm singlem black hispanic asianother white native nohighsch highsch somecoll colldeg hhincome employed notlabor unemplyd pnum metro northeast midwest west south, vce(robust)
 outreg2 using prepaidoutputJEPFINAL.txt, excel label (insert) dec(3)
 margins, dydx(*) post
 outreg2 using prepaidoutputJEPFINAL.txt, excel cti(dydx) dec(3)
-//with attitudes 2 years//
+
+//including banking attitudes but including only 2 years//
 biprobit (openacct = prepaid prevbankyrs notrust lomoney  transAFS  allAFS noAFS smtphone ftmphone nomphone y2013 y2015 y2017 age* married singlemother singlefather singlewm singlem black hispanic asianother white native nohighsch highsch somecoll colldeg hhincome employed notlabor unemplyd pnum metro northeast midwest west south) ///
 (prepaid = prevbankyrs homeowner smtphone ftmphone nomphone y2013 y2015 y2017 age* married singlemother singlefather singlewm singlem black hispanic asianother white native nohighsch highsch somecoll colldeg hhincome employed notlabor unemplyd pnum metro northeast midwest west south), vce(robust)
 outreg2 using prepaidoutputJEPFINAL.txt, excel label (insert) dec(3)
@@ -925,7 +755,7 @@ outreg2 using prepaidoutputJEPFINAL.txt, excel label (insert) dec(3)
 margins, dydx(*) post
 outreg2 using prepaidoutputJEPFINAL.txt, excel cti(dydx) dec(3)
 
-*robust with scaled intent variable*
+*robustness check with scaled intent variable*
 /*
  bankintent |      Freq.     Percent        Cum.
 ------------+-----------------------------------
@@ -937,6 +767,9 @@ outreg2 using prepaidoutputJEPFINAL.txt, excel cti(dydx) dec(3)
       Total |      6,178      100.00
 	  
 */
+
+/*Ordered Probit Regressions*/
+
 oprobit bankintent prepaid prevbankyrs transAFS  allAFS noAFS smtphone ftmphone nomphone y2013 y2015 y2017 age* married singlemother singlefather singlewm singlem black hispanic asianother white native nohighsch highsch somecoll colldeg hhincome employed notlabor unemplyd pnum metro northeast midwest west south, vce(robust)
 outreg2 using bankintentoprobit.txt, excel label (insert) dec(3)
 margins, dydx(*) post
@@ -972,4 +805,5 @@ biprobit (openacct = prepaid prevbankyrs checkmopay notrust lomoney  transAFS cr
 outreg2 using prepaidoutputFINAL.txt, excel label (insert) dec(3)
 margins, dydx(*) post
 outreg2 using prepaidoutputFINAL.txt, excel cti(dydx) dec(3)
-///STOP FOR JEP_July 2020!!!
+
+///End
